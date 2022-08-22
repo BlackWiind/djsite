@@ -1,4 +1,6 @@
 from django.db import models
+from django.urls import reverse
+
 
 class Woman(models.Model):
     title = models.CharField(max_length=255)
@@ -10,3 +12,6 @@ class Woman(models.Model):
 
     def __str__(self):
         return self.title
+
+    def get_url(self):
+        return reverse('post', kwargs={'post_id': self.pk})
