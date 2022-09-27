@@ -6,9 +6,11 @@ from django.http import HttpResponse, HttpResponseNotFound, Http404
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.views.generic import ListView, DetailView, CreateView, FormView
+from rest_framework import generics
 
 from .forms import AddPostForm, RegisterUserForm, LoginUserForm, ContactForm
 from .models import *
+from .serializers import WomanSerializer
 from .utils import *
 
 
@@ -27,19 +29,6 @@ class WomanHome(DataMixin, ListView):
         return Woman.objects.filter(is_published=True).select_related('cat')
 
 
-# def index(request):
-#     posts = Woman.objects.all()
-#
-#     context = {
-#         'posts': posts,
-#         'menu': menu,
-#         'title': 'Главная страница',
-#         'cat_selected': 0,
-#
-#     }
-#     return render(request, 'woman/index.html', context=context)
-
-
 def about(request):
     return render(request, 'woman/about.html', {'menu': menu, 'title': 'О сайте'})
 
@@ -53,17 +42,6 @@ class AddPage(LoginRequiredMixin,  DataMixin, CreateView):
         context = super().get_context_data(**kwargs)
         c_def = self.get_user_context(title="Добавление статьи")
         return dict(list(context.items()) + list(c_def.items()))
-
-
-# def addpage(request):
-#     if request.method == 'POST':
-#         form = AddPostForm(request.POST, request.FILES)
-#         if form.is_valid():
-#             form.save()
-#             return redirect('home')
-#     else:
-#         form = AddPostForm()
-#     return render(request, 'woman/addpage.html', {'form': form, 'menu': menu, 'title': 'Добавление статьи'})
 
 
 class ContactFormView(DataMixin, FormView):
@@ -80,12 +58,6 @@ class ContactFormView(DataMixin, FormView):
         print(form.cleaned_data)
         return redirect('home')
 
-# def contact(request):
-#     return HttpResponse("Обратная связь")
-
-
-# def login(request):
-#     return HttpResponse("Авторизация")
 
 
 def pageNotFound(request, exception):
@@ -103,17 +75,6 @@ class ShowPost(DataMixin, DetailView):
         c_def = self.get_user_context(title=str(context['post'].title))
         return dict(list(context.items()) + list(c_def.items()))
 
-
-# def show_post(request, post_slug):
-#     post = get_object_or_404(Woman, slug=post_slug)
-#
-#     context = {
-#         'post': post,
-#         'menu': menu,
-#         'title': post.title,
-#         'cat_selected': post.cat_id,
-#     }
-#     return render(request, 'woman/post.html', context=context)
 
 
 class WomanCategory(DataMixin, ListView):
@@ -165,3 +126,8 @@ class LoginUser(DataMixin, LoginView):
 def logout_user(request):
     logout(request)
     return redirect('home')
+
+
+class WomanAPIView(generics.ListAPIView):
+    queryset = Woman.objects.all()
+    serializer_class = WomanSerializer
