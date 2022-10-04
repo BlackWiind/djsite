@@ -7,6 +7,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.views.generic import ListView, DetailView, CreateView, FormView
 from rest_framework import generics
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from .forms import AddPostForm, RegisterUserForm, LoginUserForm, ContactForm
 from .models import *
@@ -128,6 +130,19 @@ def logout_user(request):
     return redirect('home')
 
 
-class WomanAPIView(generics.ListAPIView):
-    queryset = Woman.objects.all()
-    serializer_class = WomanSerializer
+class WomanAPIView(APIView):
+    def get(self, request):
+        queryset = Woman.objects.all()
+        return Response({'posts': WomanSerializer(queryset, many=True).data})
+
+    def post(self, request):
+        serializer = WomanSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        new_post = Woman.objects.create(
+            title=request.data['title'],
+            content=request.data['content'],
+            cat_id=request.data['cat_id'],
+        )
+
+        return Response({'post': WomanSerializer(new_post).data})
