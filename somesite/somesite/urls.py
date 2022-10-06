@@ -29,7 +29,8 @@ urlpatterns = [
     path('', include('woman.urls')),
     path('__debug__/', include('debug_toolbar.urls')),
     path('captcha/', include('captcha.urls')),
-    path('api/v1/womanlist/', WomanAPIView.as_view())
+    path('api/v1/womanlist/', WomanAPIView.as_view()),
+    path('api/v1/womanlist/<int:pk>/', WomanAPIView.as_view()),
 ]
 
 

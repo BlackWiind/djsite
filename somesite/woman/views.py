@@ -35,7 +35,7 @@ def about(request):
     return render(request, 'woman/about.html', {'menu': menu, 'title': 'О сайте'})
 
 
-class AddPage(LoginRequiredMixin,  DataMixin, CreateView):
+class AddPage(LoginRequiredMixin, DataMixin, CreateView):
     form_class = AddPostForm
     template_name = 'woman/addpage.html'
     login_url = '/admin/'
@@ -61,7 +61,6 @@ class ContactFormView(DataMixin, FormView):
         return redirect('home')
 
 
-
 def pageNotFound(request, exception):
     return HttpResponseNotFound('<h1>Страница не найдена</h1>');
 
@@ -76,7 +75,6 @@ class ShowPost(DataMixin, DetailView):
         context = super().get_context_data(**kwargs)
         c_def = self.get_user_context(title=str(context['post'].title))
         return dict(list(context.items()) + list(c_def.items()))
-
 
 
 class WomanCategory(DataMixin, ListView):
@@ -138,11 +136,22 @@ class WomanAPIView(APIView):
     def post(self, request):
         serializer = WomanSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        serializer.save()
 
-        new_post = Woman.objects.create(
-            title=request.data['title'],
-            content=request.data['content'],
-            cat_id=request.data['cat_id'],
-        )
+        return Response({'post': serializer.data})
 
-        return Response({'post': WomanSerializer(new_post).data})
+    def put(self, request, *args, **kwargs):
+        pk = kwargs.get("pk", None)
+        if not pk:
+            return Response({"error": "Method PUT not allowed"})
+
+        try:
+            instance = Woman.objects.get(pk=pk)
+        except:
+            return Response({"error": "Object not exist"})
+
+        serializer = WomanSerializer(data=request.data, instance=instance)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({"post": serializer.data})
+
